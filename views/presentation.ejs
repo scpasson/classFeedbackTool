@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/header', { title: 'Classroom Presentation Display' }) %>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="bg-app-body text-app-main min-h-screen flex flex-col justify-between p-4 md:p-8">
+
+    <!-- Top Navigation / Mode Switcher Bar -->
+    <header class="flex flex-col md:flex-row md:justify-between md:items-center gap-3 border-b border-app-border pb-4">
+        <div>
+            <h1 id="classTitle" class="text-xl font-bold text-app-accent">Loading Session...</h1>
+            <p id="setSubtitle" class="text-xs text-app-muted">Question Set</p>
+        </div>
+        <div class="flex gap-1 md:gap-2 bg-app-card p-1.5 rounded-lg border border-app-border">
+            <button onclick="setMode('question')" id="btn-question" class="flex-1 px-2 md:px-4 py-1.5 text-xs font-semibold rounded bg-app-primary text-white transition">1. Question</button>
+            <button onclick="setMode('checkin')" id="btn-checkin" class="flex-1 px-2 md:px-4 py-1.5 text-xs font-semibold rounded hover:bg-app-sec text-app-muted transition">2. Check-In</button>
+            <button onclick="setMode('results')" id="btn-results" class="flex-1 px-2 md:px-4 py-1.5 text-xs font-semibold rounded hover:bg-app-sec text-app-muted transition">3. Results</button>
+        </div>
+        <div class="flex gap-1 md:gap-2 bg-app-card p-1.5 rounded-lg border border-app-border">
+            <button onclick="setDisplay('question')" id="disp-question" class="flex-1 px-2 md:px-4 py-1.5 text-xs font-semibold rounded hover:bg-app-sec text-app-muted transition">Question only</button>
+            <button onclick="setDisplay('question-options')" id="disp-question-options" class="flex-1 px-2 md:px-4 py-1.5 text-xs font-semibold rounded hover:bg-app-sec text-app-muted transition">Question + answers</button>
+        </div>
+        <a href="/active" class="text-xs text-app-muted hover:text-app-main">Back to Active Session</a>
+    </header>
+
+    <!-- Main Display Area (Switches based on mode) -->
+    <main class="my-auto py-6 md:py-12 max-w-4xl mx-auto w-full">
+        
+        <!-- MODE 1: Question & Options Display -->
+        <div id="mode-question" class="flex flex-col gap-8">
+            <div class="text-center">
+                <span id="questionNum" class="text-app-accent font-mono text-sm uppercase tracking-wider">Question 1</span>
+                <h2 id="questionPrompt" class="text-xl md:text-3xl font-medium mt-2 math-render">Loading prompt...</h2>
+            </div>
+            <div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                <!-- Dynamically injected options A, B, C, D -->
+            </div>
+        </div>
+
+        <!-- MODE 2: Live Check-In Tracker -->
+        <div id="mode-checkin" class="hidden flex flex-col gap-6 text-center">
+            <h2 class="text-2xl font-bold text-app-accent">Live Response Check-In</h2>
+            <p class="text-app-muted text-sm">Scanning student cards... Responses recorded so far:</p>
+            
+            <div id="checkinGrid" class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 max-h-96 overflow-y-auto p-2 md:p-4 bg-app-card/50 rounded-xl border border-app-border">
+                <!-- Dynamically listed student badges -->
+            </div>
+            <div>
+                <button onclick="setLabel('name')" id="lbl-name" class="px-3 py-1 text-xs rounded">By name</button>
+                <button onclick="setLabel('card')" id="lbl-card" class="px-3 py-1 text-xs rounded">By card</button>
+                <button onclick="setLabel('both')" id="lbl-both" class="px-3 py-1 text-xs rounded">By both</button>
+
+            </div>
+
+        </div>
+
+        <!-- MODE 3: Results Bar Graph & Correct Answer Reveal -->
+        <div id="mode-results" class="hidden flex flex-col gap-8">
+            <div class="text-center">
+                <h2 class="text-2xl font-bold text-app-accent">Class Response Distribution</h2>
+                <p id="correctRevealText" class="text-app-accent font-semibold mt-1 hidden">Correct Answer: Option <span id="correctLetter"></span></p>
+            </div>
+            
+            <!-- Simple CSS Bar Graph -->
+            <div class="flex items-end justify-center gap-3 md:gap-8 h-64 border-b border-app-border pb-2 px-2 md:px-12">
+                <div class="flex flex-col items-center gap-2 h-full justify-end w-16">
+                    <span id="count-0" class="text-xs font-mono text-app-muted">0</span>
+                    <div id="bar-0" class="w-full bg-app-primary rounded-t transition-all duration-300" style="height: 0%"></div>
+                    <span class="font-bold text-sm">A</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 h-full justify-end w-16">
+                    <span id="count-1" class="text-xs font-mono text-app-muted">0</span>
+                    <div id="bar-1" class="w-full bg-app-primary rounded-t transition-all duration-300" style="height: 0%"></div>
+                    <span class="font-bold text-sm">B</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 h-full justify-end w-16">
+                    <span id="count-2" class="text-xs font-mono text-app-muted">0</span>
+                    <div id="bar-2" class="w-full bg-app-primary rounded-t transition-all duration-300" style="height: 0%"></div>
+                    <span class="font-bold text-sm">C</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 h-full justify-end w-16">
+                    <span id="count-3" class="text-xs font-mono text-app-muted">0</span>
+                    <div id="bar-3" class="w-full bg-app-primary rounded-t transition-all duration-300" style="height: 0%"></div>
+                    <span class="font-bold text-sm">D</span>
+                </div>
+            </div>
+            <button onclick="toggleReveal()" class="mx-auto bg-app-card hover:bg-app-sec/90 border border-app-border px-6 py-2 rounded-lg text-sm font-semibold transition">Toggle Correct Answer Reveal</button>
+        </div>
+
+    </main>
+
+    <!-- Footer Controls (Prev/Next Question) -->
+    <footer class="flex justify-between items-center gap-2 border-t border-app-border pt-4">
+        <button onclick="prevQuestion()" class="bg-app-card hover:bg-app-sec/90 border border-app-border px-3 md:px-4 py-2 rounded text-sm">&larr; Prev</button>
+        <span id="statusIndicator" class="text-xs text-app-muted font-mono">Connected</span>
+        <button onclick="clearResults()" class="bg-app-danger hover:bg-app-danger-hover px-3 md:px-4 py-2 rounded text-sm">Clear results &amp; re-collect</button>
+        <button onclick="nextQuestion()" class="bg-app-primary hover:bg-app-primary-hover px-3 md:px-4 py-2 rounded text-sm font-semibold">Next &rarr;</button>
+    </footer>
+
+    <script src="/scripts/rich-text.js"></script>
+    <script src="/scripts/presentation.js"></script>
+</body>
+</html>

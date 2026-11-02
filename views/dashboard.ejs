@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/header', { title: 'Teacher Dashboard' }) %>
+</head>
+<body class="bg-app-body text-app-main min-h-screen p-8">
+    <div class="max-w-5xl mx-auto flex flex-col gap-8">
+        <header class="flex justify-between items-center border-b border-app-border pb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-app-accent">Teacher Dashboard</h1>
+                <p class="text-xs text-app-muted">Set up classes, cards and question sets before class.</p>
+            </div>
+            <div class="flex gap-2">
+                <a href="/active" class="text-sm bg-app-primary hover:bg-app-primary-hover font-semibold px-4 py-2 rounded">Start Class Session</a>
+                <a href="/results" class="text-sm bg-app-card px-4 py-2 rounded hover:bg-app-sec">Results</a>
+                <a href="/gradebook" class="text-sm bg-app-card px-4 py-2 rounded hover:bg-app-sec">Gradebook</a>
+                <a href="/account" class="text-sm bg-app-card px-4 py-2 rounded hover:bg-app-sec">Account</a>
+                <a href="/" class="text-sm bg-app-card px-4 py-2 rounded hover:bg-app-sec">Home</a>
+            </div>
+        </header>
+
+        <!-- Classes -->
+        <section class="bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-4">
+            <h2 class="text-lg font-semibold text-app-accent">Classes</h2>
+            <div class="flex flex-wrap gap-2 items-center">
+                <select id="classSelect" onchange="onClassChange()" class="bg-app-body border border-app-border p-2 rounded text-sm"></select>
+                <button onclick="newClassForm()" class="bg-app-card hover:bg-app-sec text-xs px-3 py-2 rounded">New class</button>
+                <button onclick="deleteClass()" class="bg-app-danger hover:bg-app-danger-hover text-xs px-3 py-2 rounded">Delete class</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                <input id="className" placeholder="Class name (e.g. Algebra 1 - Period 3)" class="bg-app-body border border-app-border p-2 rounded text-sm md:col-span-2">
+                <input id="classYear" placeholder="Academic year (e.g. 2025-2026)" class="bg-app-body border border-app-border p-2 rounded text-sm">
+            </div>
+            <div><button onclick="saveClass()" class="bg-app-primary hover:bg-app-primary-hover text-xs px-4 py-2 rounded font-semibold">Save class</button></div>
+        </section>
+
+        <!-- Roster and card assignment -->
+        <section class="bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-4">
+            <h2 class="text-lg font-semibold text-app-accent">Roster &amp; Card Numbers</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="border-b border-app-border text-app-muted text-xs select-none">
+                            <th class="pb-2 pr-2 cursor-pointer hover:text-app-main" onclick="setSort('firstName')">First name <span id="sort-firstName"></span></th>
+                            <th class="pb-2 pr-2 cursor-pointer hover:text-app-main" onclick="setSort('lastName')">Last name <span id="sort-lastName"></span></th>
+                            <th class="pb-2 pr-2 cursor-pointer hover:text-app-main" onclick="setSort('presentedName')">Presented name <span id="sort-presentedName"></span></th>
+                            <th class="pb-2 pr-2 cursor-pointer hover:text-app-main" onclick="setSort('studentNumber')">Student ID <span id="sort-studentNumber"></span></th>
+                            <th class="pb-2 pr-2 cursor-pointer hover:text-app-main" onclick="setSort('sortOrder')">Sort <span id="sort-sortOrder"></span></th>
+                            <th class="pb-2 pr-2 cursor-pointer hover:text-app-main" onclick="setSort('cardId')">Card <span id="sort-cardId"></span></th>
+                            <th class="pb-2 pr-2">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody"></tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="pt-3 pr-2"><input id="newFirst" placeholder="First name" class="bg-app-body border border-app-border p-1.5 rounded text-xs w-full"></td>
+                            <td class="pt-3 pr-2"><input id="newLast" placeholder="Last name" class="bg-app-body border border-app-border p-1.5 rounded text-xs w-full"></td>
+                            <td class="pt-3 pr-2"><input id="newPresented" placeholder="Presented (optional)" class="bg-app-body border border-app-border p-1.5 rounded text-xs w-full"></td>
+                            <td class="pt-3 pr-2"><input id="newNumber" placeholder="ID (optional)" class="bg-app-body border border-app-border p-1.5 rounded text-xs w-full"></td>
+                            <td class="pt-3 pr-2"><input id="newSort" placeholder="Sort" class="bg-app-body border border-app-border p-1.5 rounded text-xs w-20 font-mono"></td>
+                            <td class="pt-3 pr-2"><input id="newCard" placeholder="Card" class="bg-app-body border border-app-border p-1.5 rounded text-xs w-20 font-mono"></td>
+                            <td class="pt-3"><button onclick="addStudent()" class="bg-app-primary hover:bg-app-primary-hover text-xs px-3 py-1.5 rounded font-semibold">Add</button></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <details class="bg-app-body border border-app-border rounded p-3">
+                <summary class="text-xs text-app-accent cursor-pointer">Add many students (paste a list)</summary>
+                <p class="text-xs text-app-muted mt-2">One student per line. Columns separated by tab or comma: first name, last name, presented name, ID, sort, card. Presented name, ID and sort may be left empty (keep the separators). Pasting from spreadsheet columns works.</p>
+                <textarea id="bulkText" rows="6" placeholder="Jane&#9;Doe&#9;&#9;1001&#9;1&#9;12&#10;John&#9;Smith&#9;Johnny&#9;&#9;2&#9;13" class="bg-app-body border border-app-border p-2 rounded text-xs w-full font-mono mt-2"></textarea>
+                <button onclick="addBulk()" class="bg-app-primary hover:bg-app-primary-hover text-xs px-3 py-1.5 rounded font-semibold mt-2">Add all</button>
+            </details>
+            <p id="rosterMsg" class="text-xs"></p>
+        </section>
+
+        <!-- Question sets: choose which are available in a class session -->
+        <section class="bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-app-accent">My Question Sets</h2>
+                <a href="/questionSets" class="text-xs text-app-accent hover:opacity-80">Manage sets, discover and bookmarks &rarr;</a>
+            </div>
+            <p class="text-xs text-app-muted">Only active sets can be chosen on the class session page.</p>
+            <div id="setList" class="overflow-x-auto"></div>
+        </section>
+    </div>
+
+    <script src="/scripts/sortable.js"></script>
+    <script src="/scripts/dashboard.js"></script>
+</body>
+</html>

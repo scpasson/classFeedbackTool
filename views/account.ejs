@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/header', { title: 'Account' }) %>
+</head>
+<body class="bg-app-body text-app-main min-h-screen p-8">
+    <div class="max-w-xl mx-auto flex flex-col gap-6">
+        <header class="flex justify-between items-center border-b border-app-border pb-4">
+            <h1 class="text-2xl font-bold text-app-accent">Account</h1>
+            <a href="/dashboard" class="text-sm bg-app-card px-4 py-2 rounded hover:bg-app-sec">Dashboard</a>
+        </header>
+
+        <form id="profileForm" class="bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-3">
+            <h2 class="text-lg font-semibold text-app-accent">Profile</h2>
+            <input id="userName" required value="<%= user.name %>" placeholder="Name" class="bg-app-sub border border-app-border p-2 rounded text-sm">
+            <input id="email" type="email" required value="<%= user.email %>" placeholder="Email" class="bg-app-sub border border-app-border p-2 rounded text-sm">
+            <div><button class="bg-app-primary hover:bg-app-primary-hover text-xs px-4 py-2 rounded font-semibold">Save profile</button></div>
+            <p id="profileMsg" class="text-xs min-h-4"></p>
+        </form>
+
+        <form id="passwordForm" class="bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-3">
+            <h2 class="text-lg font-semibold text-app-accent">Change password</h2>
+            <input id="currentPassword" type="password" required autocomplete="current-password" placeholder="Current password" class="bg-app-sub border border-app-border p-2 rounded text-sm">
+            <input id="newPassword" type="password" required minlength="8" autocomplete="new-password" placeholder="New password (8+ characters)" class="bg-app-sub border border-app-border p-2 rounded text-sm">
+            <div><button class="bg-app-primary hover:bg-app-primary-hover text-xs px-4 py-2 rounded font-semibold">Change password</button></div>
+            <p id="passwordMsg" class="text-xs min-h-4"></p>
+        </form>
+
+        <div class="bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-3">
+            <h2 class="text-lg font-semibold text-app-accent">Session</h2>
+            <div><button onclick="logout()" class="bg-app-sec hover:bg-app-sec-hover text-xs px-4 py-2 rounded">Log out</button></div>
+        </div>
+
+        <form id="deleteForm" class="bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-3">
+            <h2 class="text-lg font-semibold text-app-accent">Delete account</h2>
+            <p class="text-xs text-app-muted">Permanently removes your account, classes, students, question sets, questions and all responses.</p>
+            <input id="deletePassword" type="password" required autocomplete="current-password" placeholder="Confirm with your password" class="bg-app-sub border border-app-border  p-2 rounded text-sm">
+            <div><button class="bg-app-danger hover:bg-app-danger-hover text-xs px-4 py-2 rounded">Delete my account</button></div>
+            <p id="deleteMsg" class="text-xs min-h-4"></p>
+        </form>
+    </div>
+    <script src="/scripts/account.js"></script>
+</body>
+</html>

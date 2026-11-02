@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# images
+uploads/
+
+# Environment variables (keeps your database password safe!)
+.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS specific files
+.DS_Store
+Thumbs.db

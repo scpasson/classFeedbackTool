@@ -1,0 +1,5 @@
+<nav class="flex gap-2 text-sm">
+    <% [['/questionSets', 'My question sets', 'mine'], ['/discover', 'Discover', 'discover'], ['/bookmarks', 'Bookmarks', 'bookmarks']].forEach(t => { %>
+        <a href="<%= t[0] %>" class="px-4 py-2 rounded <%= active === t[2] ? 'bg-app-primary font-semibold' : 'bg-app-card hover:bg-app-sec' %>"><%= t[1] %></a>
+    <% }) %>
+</nav>

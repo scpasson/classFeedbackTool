@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/header', { title: 'Bookmarked Question Sets' }) %>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+</head>
+<body class="bg-app-body text-app-main min-h-screen p-8">
+    <div class="max-w-6xl mx-auto flex flex-col gap-6">
+        <header class="flex justify-between items-center border-b border-app-border pb-4">
+            <h1 class="text-2xl font-bold text-app-accent">Bookmarked Question Sets</h1>
+            <a href="/dashboard" class="text-sm bg-app-card px-4 py-2 rounded hover:bg-app-sec">Back to Dashboard</a>
+        </header>
+        <%- include('partials/set-tabs', { active: 'bookmarks' }) %>
+
+        <section id="setBrowser" data-mode="bookmarks" class="bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-4">
+            <p class="text-xs text-app-muted">Sets you have bookmarked. Sets that were deleted or made private by their owner are hidden.</p>
+            <div id="setTable" class="overflow-x-auto"></div>
+        </section>
+    </div>
+    <script src="/scripts/rich-text.js"></script>
+    <script src="/scripts/sortable.js"></script>
+    <script src="/scripts/set-browser.js"></script>
+</body>
+</html>

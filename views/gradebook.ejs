@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/header', { title: 'Gradebook' }) %>
+</head>
+<body class="bg-app-body text-app-main min-h-screen p-8">
+    <div class="max-w-7xl mx-auto flex flex-col gap-6">
+        <header class="flex justify-between items-center border-b border-app-border pb-4">
+            <h1 class="text-2xl font-bold text-app-accent">Gradebook</h1>
+            <div class="flex gap-2">
+                <a href="/results" class="text-sm bg-app-card px-4 py-2 rounded hover:bg-app-sec">Results</a>
+                <a href="/dashboard" class="text-sm bg-app-card px-4 py-2 rounded hover:bg-app-sec">Dashboard</a>
+            </div>
+        </header>
+
+        <section class="bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <label class="text-xs text-app-muted flex flex-col gap-1">Class
+                    <select id="classSelect" onchange="load()" class="bg-app-body border border-app-border p-2 rounded text-sm text-app-main"></select>
+                </label>
+                <label class="text-xs text-app-muted flex flex-col gap-1">Asked from
+                    <input id="from" type="date" onchange="load()" class="bg-app-body border border-app-border p-2 rounded text-sm text-app-main">
+                </label>
+                <label class="text-xs text-app-muted flex flex-col gap-1">Asked to
+                    <input id="to" type="date" onchange="load()" class="bg-app-body border border-app-border p-2 rounded text-sm text-app-main">
+                </label>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="clearDates()" class="bg-app-card hover:bg-app-sec text-xs px-3 py-2 rounded">Clear dates</button>
+                <button onclick="showAll()" class="bg-app-card hover:bg-app-sec text-xs px-3 py-2 rounded">Show hidden sets</button>
+                <button onclick="copyTable()" class="bg-app-primary hover:bg-app-primary-hover text-xs px-3 py-2 rounded font-semibold">Copy table</button>
+                <span id="msg" class="text-xs text-app-muted"></span>
+            </div>
+            <p class="text-xs text-app-muted">A set appears once answers have been collected for it in this class. The date filter uses the day it was first asked. Use "Hide" on a set to leave it out of the table and the copied data.</p>
+            <div class="overflow-x-auto">
+                <table id="table" class="text-sm"></table>
+            </div>
+        </section>
+    </div>
+    <script src="/scripts/sortable.js"></script>
+    <script src="/scripts/gradebook.js"></script>
+</body>
+</html>

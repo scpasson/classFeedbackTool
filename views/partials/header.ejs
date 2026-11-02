@@ -1,0 +1,153 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= typeof title !== 'undefined' ? title : 'App' %></title>
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Theme Variables CSS -->
+<style>
+  /* Default / Dark Slate Theme */
+  :root, [data-theme="slate"] {
+    --color-body: #0f172a;        /* slate-900 */
+    --color-card: #1e293b;        /* slate-800 */
+    --color-card-sub: #0f172a;    /* slate-900 */
+    --color-border: #334155;      /* slate-700 */
+    --color-text-main: #f8fafc;   /* slate-100 */
+    --color-text-muted: #94a3b8;  /* slate-400 */
+    --color-accent: #34d399;      /* emerald-400 */
+    --color-btn-primary: #059669; /* emerald-600 */
+    --color-btn-primary-hover: #10b981; /* emerald-500 */
+    --color-btn-sec: #334155;     /* slate-700 */
+    --color-btn-sec-hover: #475569;/* slate-600 */
+    --color-btn-danger: #7f1d1d;    /* red: 900 */
+    --color-btn-danger-hover: #991b1b;  /* red-800 */
+    
+    /* New Status Colors */
+    --color-success: #059669;       /* emerald-600 */
+    --color-success-sub: rgba(6, 78, 59, 0.4); /* emerald-950/40 */
+    --color-success-border: #34d399;/* emerald-400 */
+    --color-error: #dc2626;         /* red-600 */
+    --color-error-border: #f87171;  /* red-400 */
+    --color-poll: #0369a1;          /* sky-700 */
+    --color-poll-border: #0ea5e9;   /* sky-500 */
+    --color-warning: #eab308;       /* yellow-500 */
+  } 
+
+  /* Light Theme */
+  [data-theme="light"] {
+    --color-body: #f8fafc;
+    --color-card: #ffffff;
+    --color-card-sub: #f1f5f9;
+    --color-border: #e2e8f0;
+    --color-text-main: #0f172a;
+    --color-text-muted: #64748b;
+    --color-accent: #2563eb;      /* blue-600 */
+    --color-btn-primary: #2563eb;
+    --color-btn-primary-hover: #1d4ed8;
+    --color-btn-sec: #e2e8f0;
+    --color-btn-sec-hover: #cbd5e1;
+    --color-btn-danger: #ef4444;    /* red-500 */
+    --color-btn-danger-hover: #dc2626;
+
+    /* New Status Colors */
+    --color-success: #16a34a;       /* green-600 */
+    --color-success-sub: rgba(220, 252, 231, 0.6); /* green-100/60 */
+    --color-success-border: #22c55e;/* green-500 */
+    --color-error: #dc2626;         /* red-600 */
+    --color-error-border: #f87171;  /* red-400 */
+    --color-poll: #0284c7;          /* sky-600 */
+    --color-poll-border: #38bdf8;   /* sky-400 */
+    --color-warning: #ca8a04;       /* yellow-600 */
+  }
+
+  /* Midnight Purple Theme */
+  [data-theme="purple"] {
+    --color-body: #110921;
+    --color-card: #1d1235;
+    --color-card-sub: #110921;
+    --color-border: #3b2863;
+    --color-text-main: #f3e8ff;
+    --color-text-muted: #a855f7;
+    --color-accent: #c084fc;
+    --color-btn-primary: #9333ea;
+    --color-btn-primary-hover: #a855f7;
+    --color-btn-sec: #2e1d52;
+    --color-btn-sec-hover: #3b2863;
+    --color-btn-danger: #9d174d;    /* pink-800 */
+    --color-btn-danger-hover: #be185d;
+
+    /* New Status Colors */
+    --color-success: #7e22ce;       /* purple-700 */
+    --color-success-sub: rgba(76, 29, 149, 0.4); /* purple-900/40 */
+    --color-success-border: #c084fc;/* purple-400 */
+    --color-error: #be185d;         /* pink-700 */
+    --color-error-border: #f472b6;  /* pink-400 */
+    --color-poll: #4f46e5;          /* indigo-600 */
+    --color-poll-border: #818cf8;   /* indigo-400 */
+    --color-warning: #d97706;       /* amber-600 */
+  }
+</style>
+<!-- Map CSS variables into Tailwind -->
+<script>
+  // Tailwind may pass opacityValue as a CSS expression (e.g. "var(--tw-bg-opacity)"), so it must go through calc().
+  const themeColor = name => ({ opacityValue }) =>
+    opacityValue === undefined
+      ? `var(${name})`
+      : `color-mix(in srgb, var(${name}) calc(${opacityValue} * 100%), transparent)`;
+
+  tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        app: {
+          body: themeColor('--color-body'),
+          card: themeColor('--color-card'),
+          sub: themeColor('--color-card-sub'),
+          border: themeColor('--color-border'),
+          main: themeColor('--color-text-main'),
+          muted: themeColor('--color-text-muted'),
+          accent: themeColor('--color-accent'),
+          primary: themeColor('--color-btn-primary'),
+          'primary-hover': themeColor('--color-btn-primary-hover'),
+          sec: themeColor('--color-btn-sec'),
+          'sec-hover': themeColor('--color-btn-sec-hover'),
+          danger: themeColor('--color-btn-danger'),
+          'danger-hover': themeColor('--color-btn-danger-hover'),
+          success: themeColor('--color-success'),
+          'success-sub': themeColor('--color-success-sub'),
+          'success-border': themeColor('--color-success-border'),
+          error: themeColor('--color-error'),
+          'error-border': themeColor('--color-error-border'),
+          poll: themeColor('--color-poll'),
+          'poll-border': themeColor('--color-poll-border'),
+          warning: themeColor('--color-warning')
+        }
+      }
+    }
+  }
+};
+</script>
+
+<!-- Theme persistence + selector (fixed, bottom-right on every page) -->
+<script>
+  (function () {
+    const THEMES = { slate: 'Dark Slate', light: 'Light', purple: 'Midnight Purple' };
+    let saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    document.documentElement.setAttribute('data-theme', THEMES[saved] ? saved : 'slate');
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const sel = document.createElement('select');
+      sel.setAttribute('aria-label', 'Theme');
+      sel.className = 'fixed bottom-3 right-3 z-50 bg-app-card text-app-main border border-app-border rounded text-xs p-1.5 opacity-70 hover:opacity-100';
+      sel.innerHTML = Object.entries(THEMES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+      sel.value = document.documentElement.getAttribute('data-theme');
+      sel.addEventListener('change', function () {
+        document.documentElement.setAttribute('data-theme', sel.value);
+        try { localStorage.setItem('theme', sel.value);} catch (e) {}
+      });
+      document.body.appendChild(sel);
+    });
+  })();
+</script>

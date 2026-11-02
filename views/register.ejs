@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/header', { title: 'Create account - Math Classroom Tool' }) %>
+</head>
+<body class="bg-app-body text-app-main min-h-screen flex items-center justify-center p-6">
+    <form id="form" class="max-w-sm w-full bg-app-card p-8 rounded-2xl shadow-xl border border-app-border flex flex-col gap-4">
+        <h1 class="text-2xl font-bold text-app-accent text-center">Create an account</h1>
+        <input id="userName" required autocomplete="name" placeholder="Your name (e.g. Mr. Passon)" class="bg-app-body border border-app-border p-2 rounded text-sm">
+        <input id="email" type="email" required autocomplete="username" placeholder="Email" class="bg-app-body border border-app-border p-2 rounded text-sm">
+        <input id="password" type="password" required minlength="8" autocomplete="new-password" placeholder="Password (8+ characters)" class="bg-app-body border border-app-border p-2 rounded text-sm">
+        <input id="passwordConfirm" type="password" required autocomplete="new-password" placeholder="Confirm password" class="bg-app-body border border-app-border p-2 rounded text-sm">
+        <button class="bg-app-primary hover:bg-app-primary-hover font-semibold py-2 rounded text-sm">Create account</button>
+        <p id="msg" class="text-xs text-app-error-border min-h-4"></p>
+        <p class="text-xs text-app-muted text-center">Already have an account? <a href="/login" class="text-app-accent hover:opacity-80">Log in</a></p>
+    </form>
+    <script>
+        const $ = id => document.getElementById(id);
+        $('form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            $('msg').textContent = '';
+            if ($('password').value !== $('passwordConfirm').value) { $('msg').textContent = 'Passwords do not match'; return; }
+            const res = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: $('userName').value, email: $('email').value, password: $('password').value })
+            });
+            if (res.ok) location.href = '/dashboard';
+            else $('msg').textContent = (await res.json()).error || 'Could not create account';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/header', { title: 'Math Classroom Tool - Launchpad' }) %>
+</head>
+<body class="bg-app-body text-app-main min-h-screen flex items-center justify-center p-6">
+    <div class="max-w-md w-full bg-app-card p-8 rounded-2xl shadow-xl border border-app-border flex flex-col gap-6 text-center">
+        <div>
+            <h1 class="text-2xl font-bold text-app-accent">Math Classroom Tool</h1>
+            <p class="text-xs text-app-muted mt-1">Plickers-Alternative for the Math Classroom</p>
+        </div>
+
+        <% if (user) { %>
+        <div class="flex flex-col gap-3">
+            <a href="/active" class="bg-app-primary hover:bg-app-primary-hover font-semibold py-3 px-4 rounded-xl text-sm transition shadow-lg shadow-app-primary/30">
+                Start Active Session &rarr;
+            </a>
+            <a href="/presentation" class="bg-app-primary hover:bg-app-primary-hover font-semibold py-3 px-4 rounded-xl text-sm transition shadow-lg shadow-app-primary/30">
+                Start Presentation &rarr;
+            </a>
+            <a href="/dashboard" class="bg-app-card hover:bg-app-sec font-semibold py-3 px-4 rounded-xl text-sm transition border border-app-border">
+                Open Teacher Dashboard & Rosters
+            </a>
+            <a href="/results" class="bg-app-card hover:bg-app-sec font-semibold py-3 px-4 rounded-xl text-sm transition border border-app-border">
+                Review Results
+            </a>
+            <a href="/gradebook" class="bg-app-card hover:bg-app-sec font-semibold py-3 px-4 rounded-xl text-sm transition border border-app-border">
+                Gradebook
+            </a>
+        </div>
+
+        <div class="border-t border-app-border pt-4 text-xs text-app-muted flex justify-between items-center">
+            <a href="/account" class="hover:text-app-main">Signed in as <%= user.name %></a>
+            <button onclick="logout()" class="text-app-accent hover:opacity-80">Log out</button>
+        </div>
+        <script>
+            async function logout() {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                location.href = '/login';
+            }
+        </script>
+        <% } else { %>
+        <div class="flex flex-col gap-3">
+            <a href="/login" class="bg-app-primary hover:bg-app-primary-hover font-semibold py-3 px-4 rounded-xl text-sm transition shadow-lg shadow-app-primary/30">Log in</a>
+            <a href="/register" class="bg-app-card hover:bg-app-sec font-semibold py-3 px-4 rounded-xl text-sm transition border border-app-border">Create an account</a>
+        </div>
+        <% } %>
+    </div>
+</body>
+</html>

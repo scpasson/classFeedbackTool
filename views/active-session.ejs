@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/header', { title: 'Active Session' }) %>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="bg-app-body text-app-main min-h-screen p-8">
+    <div class="max-w-4xl mx-auto flex flex-col gap-6">
+        <header class="flex justify-between items-center border-b border-app-border pb-4">
+            <h1 class="text-2xl font-bold text-app-accent">Active Session</h1>
+            <div class="flex gap-2">
+                <a href="/presentation" target="_blank" class="text-sm bg-app-primary hover:bg-app-primary-hover font-semibold px-4 py-2 rounded">Open Presentation</a>
+                <a href="/results" class="text-sm bg-app-card px-4 py-2 rounded hover:bg-app-sec">Results</a>
+                <a href="/dashboard" class="text-sm bg-app-card px-4 py-2 rounded hover:bg-app-sec">Dashboard</a>
+            </div>
+        </header>
+
+        <!-- Selection -->
+        <section class="bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label class="text-xs text-app-muted flex flex-col gap-1">Class
+                    <select id="classSelect" onchange="onClassChange()" class="bg-app-body border border-app-border p-2 rounded text-sm text-app-main"></select>
+                </label>
+                <label class="text-xs text-app-muted flex flex-col gap-1">Active question set
+                    <select id="setSelect" onchange="loadQuestions()" class="bg-app-body border border-app-border p-2 rounded text-sm text-app-main"></select>
+                </label>
+            </div>
+            <p id="emptyMsg" class="text-xs text-app-warning hidden">No active question sets. Activate one on the dashboard or questions page.</p>
+        </section>
+
+        <!-- Preview and controls -->
+        <section class="bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-app-accent">Question Preview</h2>
+                <span id="previewNum" class="text-xs font-mono text-app-muted"></span>
+            </div>
+            <div id="preview" class="bg-app-body border border-app-border rounded-lg p-6 min-h-40"></div>
+            <div class="flex flex-wrap gap-2 justify-center">
+                <button onclick="present('question')" id="btnQ" class="bg-app-card hover:bg-app-sec text-sm px-4 py-2 rounded font-semibold">Present question only</button>
+                <button onclick="present('question-options')" id="btnQO" class="bg-app-card hover:bg-app-sec text-sm px-4 py-2 rounded font-semibold">Present question + options</button>
+            </div>
+            <div class="flex justify-between">
+                <button onclick="step(-1)" class="bg-app-card border border-app-border hover:bg-app-sec text-sm px-4 py-2 rounded">&larr; Previous</button>
+
+                <div id="pagination-container" class="flex justify-between items-center"></div>
+                <button onclick="step(1)" class="bg-app-card border border-app-border hover:bg-app-sec text-sm px-4 py-2 rounded">Next &rarr;</button>
+            </div>
+        </section>
+
+        <!-- Camera -->
+        <section class="bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-4">
+            <h2 class="text-lg font-semibold text-app-accent">Camera</h2>
+            <div class="relative w-full mx-auto">
+                <video id="video" autoplay playsinline muted class="block w-full h-auto bg-black rounded-lg border border-app-border"></video>
+                <canvas id="overlay" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+            </div>
+            <div class="flex gap-2 items-center">
+                <button onclick="startCapture()" class="bg-app-primary hover:bg-app-primary-hover text-xs px-4 py-2 rounded font-semibold">Start capture</button>
+                <button onclick="stopCapture()" class="bg-app-danger hover:bg-app-danger-hover text-xs px-4 py-2 rounded">Stop capture</button>
+                <span id="camMsg" class="text-xs text-app-muted"></span>
+            </div>
+            <p id="scanMsg" class="text-xs text-app-muted"></p>
+
+            <details class="border-t border-app-border pt-3">
+                <summary class="text-xs font-semibold text-app-muted cursor-pointer">Card library (<span id="cardCount">0</span> learned)</summary>
+                <div class="flex flex-col gap-3 mt-3">
+                    <p class="text-xs text-app-muted">Hold one card upright (answer A on top) in front of the camera, enter its card number as assigned on the dashboard, and learn it.</p>
+                    <div class="flex gap-2 items-center">
+                        <input id="learnId" placeholder="Card number" class="bg-app-body border border-app-border p-2 rounded text-sm font-mono w-32">
+                        <button onclick="learnCard()" class="bg-app-card hover:bg-app-sec text-xs px-4 py-2 rounded">Learn card from camera</button>
+                    </div>
+                    <div id="cardList" class="flex flex-wrap gap-2"></div>
+                </div>
+            </details>
+        </section>
+
+        <!-- Responses -->
+        <section class="bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-app-accent">Responses</h2>
+                <div class="flex gap-2 items-center">
+                <button onclick="clearResults()" class="bg-app-danger hover:bg-app-danger-hover text-xs px-3 py-1.5 rounded">Clear results &amp; re-collect</button>
+                <div class="flex gap-1 bg-app-body p-1 rounded border border-app-border">
+                    <button onclick="setLabel('name')" id="lbl-name" class="px-3 py-1 text-xs rounded">By name</button>
+                    <button onclick="setLabel('card')" id="lbl-card" class="px-3 py-1 text-xs rounded">By card</button>
+                </div>
+                </div>
+            </div>
+            <div class="flex gap-4 text-xs text-app-muted">
+                <span><span class="inline-block w-3 h-3 rounded bg-app-primary align-middle"></span> Correct</span>
+                <span><span class="inline-block w-3 h-3 rounded bg-app-error align-middle"></span> Incorrect</span>
+                <span><span class="inline-block w-3 h-3 rounded bg-app-sec align-middle"></span> No response</span>
+            </div>
+            <div id="responseGrid" class="grid grid-cols-2 md:grid-cols-4 gap-2"></div>
+        </section>
+    </div>
+
+    <script src="/scripts/rich-text.js"></script>
+    <script src="/scripts/card-reader.js"></script>
+    <script src="/scripts/active-session.js"></script>
+</body>
+</html>

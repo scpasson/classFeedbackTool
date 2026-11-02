@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/header', { title: 'Question Set' }) %>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+</head>
+<body class="bg-app-body text-app-main min-h-screen p-8">
+    <div class="max-w-6xl mx-auto flex flex-col gap-8">
+        <header class="flex justify-between items-center border-b border-app-border pb-4">
+            <h1 id="pageTitle" class="text-2xl font-bold text-app-accent">Question Set</h1>
+            <div class="flex gap-2">
+                <% if (user) { %>
+                    <a href="/questionSets" class="text-sm bg-app-card px-4 py-2 rounded hover:bg-app-sec">My question sets</a>
+                    <a href="/discover" class="text-sm bg-app-card px-4 py-2 rounded hover:bg-app-sec">Discover</a>
+                <% } else { %>
+                    <a href="/login?next=<%= encodeURIComponent('/questionSet/' + setId) %>" class="text-sm bg-app-primary hover:bg-app-primary-hover font-semibold px-4 py-2 rounded">Log in</a>
+                <% } %>
+            </div>
+        </header>
+
+        <!-- Set details -->
+        <section class="bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-4">
+            <div id="viewerInfo" class="text-sm text-app-muted"></div>
+            <div class="flex flex-wrap gap-2 items-center">
+                <button id="bookmarkBtn" onclick="toggleBookmark()" class="bg-app-sec hover:bg-app-sec-hover text-xs px-3 py-2 rounded disabled:opacity-40 disabled:cursor-not-allowed">Bookmark</button>
+                <button id="cloneBtn" onclick="cloneSet()" class="bg-app-sec hover:bg-app-sec-hover text-xs px-3 py-2 rounded disabled:opacity-40 disabled:cursor-not-allowed">Clone</button>
+                <button onclick="copyLink()" class="bg-app-sec hover:bg-app-sec-hover text-xs px-3 py-2 rounded">Copy link</button>
+                <button onclick="deleteSet()" class="owner-only hidden bg-app-danger hover:bg-app-danger-hover text-xs px-3 py-2 rounded">Delete set</button>
+                <span id="actionMsg" class="text-xs text-app-muted"></span>
+            </div>
+            <div class="owner-only hidden flex flex-col gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-2 items-center">
+                <input id="setTitle" placeholder="Title" class="bg-app-body border border-app-border p-2 rounded text-sm md:col-span-2">
+                <input id="setSubject" placeholder="Subject (e.g. Algebra)" class="bg-app-body border border-app-border p-2 rounded text-sm">
+                <input id="setTags" placeholder="Tags (comma separated)" class="bg-app-body border border-app-border p-2 rounded text-sm">
+            </div>
+            <label class="text-xs text-app-muted flex items-center gap-2"><input type="checkbox" id="setActive" checked> Active (available in class sessions)</label>
+            <label class="text-xs text-app-muted flex items-center gap-2"><input type="checkbox" id="setPublic" checked> Public (anyone with the link can view it; it appears in Discover)</label>
+            <div><button onclick="saveSet()" id="saveSetBtn" class="bg-app-primary hover:bg-app-primary-hover text-xs px-4 py-2 rounded font-semibold">Save set details</button></div>
+            </div>
+
+            <div class="flex items-center gap-3 mt-2">
+                <h3 class="text-xs font-bold text-app-muted uppercase">Questions in this set (in presenting order)</h3>
+                <button id="previewAllBtn" onclick="togglePreviewAll()" class="ml-auto bg-app-card hover:bg-app-sec text-xs px-3 py-1.5 rounded">Preview all</button>
+            </div>
+            <div id="setQuestions" class="flex flex-col gap-2"></div>
+        </section>
+
+        <!-- Bulk add -->
+        <section class="owner-only hidden bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-4">
+            <h2 class="text-lg font-semibold text-app-accent">Add Questions</h2>
+            <p class="text-xs text-app-muted">Fill in one row per question and submit once, or paste rows copied from a spreadsheet (tab-separated; click the first cell to fill, e.g. Prompt, A, B, C, D, Correct, Tags, Shuffle). Extra rows are created automatically. Wrap math in $...$. Text supports **bold**, *italic*, `code` and "- " bullets. Images: click a prompt/option field, then Insert image (or paste/drop an image onto the field). Polls need no correct answer. With Shuffle on, put the correct answer in A and the options are shuffled when the question is presented. New questions are appended to the selected set.</p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs">
+                    <thead>
+                        <tr class="text-left text-app-muted">
+                            <th class="pb-2 pr-2">Type</th><th class="pb-2 pr-2">Prompt</th>
+                            <th class="pb-2 pr-2">A</th><th class="pb-2 pr-2">B</th><th class="pb-2 pr-2">C</th><th class="pb-2 pr-2">D</th>
+                            <th class="pb-2 pr-2">Correct</th><th class="pb-2 pr-2">Tags</th><th class="pb-2 pr-2">Shuffle</th><th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="bulkBody"></tbody>
+                </table>
+            </div>
+            <div class="flex gap-2 items-center">
+                <button onclick="addBulkRow()" class="bg-app-card hover:bg-app-sec text-xs px-3 py-2 rounded">+ Add row</button>
+                <button onclick="pickImage()" title="Insert an image into the last prompt/option field you clicked" class="bg-app-card hover:bg-app-sec text-xs px-3 py-2 rounded">Insert image</button>
+                <label class="text-xs text-app-muted flex items-center gap-1"><input type="checkbox" id="shuffleDefault"> Shuffle answers on new rows</label>
+                <label class="text-xs text-app-muted flex items-center gap-1"><input type="checkbox" id="addToSet" checked> Add to selected set</label>
+                <button onclick="submitBulk()" class="ml-auto bg-app-primary hover:bg-app-primary-hover text-xs px-4 py-2 rounded font-semibold">Save all rows</button>
+            </div>
+            <p id="bulkMsg" class="text-xs"></p>
+        </section>
+
+        <!-- Search / edit -->
+        <section class="owner-only hidden bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-4">
+            <h2 class="text-lg font-semibold text-app-accent">Search Questions</h2>
+            <div class="flex flex-wrap gap-2">
+                <input id="searchQ" oninput="debouncedSearch()" placeholder="Search prompt or tag" class="flex-1 min-w-48 bg-app-body border border-app-border p-2 rounded text-sm">
+                <select id="searchType" onchange="search()" class="bg-app-body border border-app-border p-2 rounded text-sm">
+                    <option value="">All types</option>
+                    <option value="multiple-choice">Multiple choice</option>
+                    <option value="poll">Poll</option>
+                </select>
+                <label class="text-xs text-app-muted flex items-center gap-1"><input type="checkbox" id="searchShared" onchange="search()"> Search questions shared by others</label>
+            </div>
+            <div id="results" class="flex flex-col gap-2"></div>
+        </section>
+    </div>
+
+    <!-- <script>
+        const LETTERS = ['A', 'B', 'C', 'D'];
+        let sets = [];
+        let setQuestions = [];
+        let results = [];
+        let editingId = null;
+        let searchTimer;
+
+        const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        const input = 'bg-app-body border border-app-border p-1.5 rounded text-xs w-full';
+
+        async function api(url, method = 'GET', body) {
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: body ? JSON.stringify(body) : undefined
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Request failed');
+            return data;
+        }
+
+        function renderMath() {
+            document.querySelectorAll('.math-render').forEach(el => {
+                el.dataset.raw = el.dataset.raw ?? el.textContent;
+                const parts = el.dataset.raw.split(/\$(.*?)\$/g);
+                el.innerHTML = parts.map((p, i) => i % 2 ? katex.renderToString(p, { throwOnError: false }) : esc(p)).join('');
+            });
+        }
+
+        const currentSetId = () => document.getElementById('setSelect').value;
+
+        // ---------- Sets ----------
+        async function loadSets(selectId) {
+            sets = await api('/api/question-sets');
+            const sel = document.getElementById('setSelect');
+            sel.innerHTML = sets.map(s => `<option value="${s._id}">${esc(s.title)} (${esc(s.subject)})</option>`).join('');
+            if (selectId) sel.value = selectId;
+            await onSetChange();
+        }
+
+        async function onSetChange() {
+            const set = sets.find(s => s._id === currentSetId());
+            document.getElementById('setTitle').value = set ? set.title : '';
+            document.getElementById('setSubject').value = set ? set.subject : 'Algebra';
+            document.getElementById('setTags').value = set ? (set.tags || []).join(', ') : '';
+            await loadSetQuestions();
+        }
+
+        function newSetForm() {
+            document.getElementById('setSelect').value = '';
+            document.getElementById('setTitle').value = '';
+            document.getElementById('setTags').value = '';
+            setQuestions = [];
+            renderSetQuestions();
+            document.getElementById('setTitle').focus();
+        }
+
+        async function saveSet() {
+            const body = {
+                title: document.getElementById('setTitle').value.trim(),
+                subject: document.getElementById('setSubject').value,
+                tags: document.getElementById('setTags').value
+            };
+            if (!body.title) return alert('Title is required.');
+            try {
+                const id = currentSetId();
+                const saved = id ? await api(`/api/question-sets/${id}`, 'PUT', body) : await api('/api/question-sets', 'POST', body);
+                await loadSets(saved._id);
+            } catch (e) { alert(e.message); }
+        }
+
+        async function deleteSet() {
+            const id = currentSetId();
+            if (!id || !confirm('Delete this set? Its questions stay in the question bank.')) return;
+            await api(`/api/question-sets/${id}`, 'DELETE');
+            await loadSets();
+            search();
+        }
+
+        async function loadSetQuestions() {
+            const id = currentSetId();
+            setQuestions = id ? await api(`/api/question-sets/${id}/questions`) : [];
+            renderSetQuestions();
+        }
+
+        function renderSetQuestions() {
+            const box = document.getElementById('setQuestions');
+            if (!setQuestions.length) {
+                box.innerHTML = '<p class="text-xs text-app-muted">No questions in this set yet.</p>';
+                return;
+            }
+            box.innerHTML = setQuestions.map((q, i) => `
+                <div class="bg-app-body border border-app-border rounded p-2 text-xs flex items-center gap-2">
+                    <span class="text-app-muted font-bold w-8">Q${i + 1}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded ${q.questionType === 'poll' ? 'bg-app-warning/20 text-app-warning' : 'bg-app-success-sub text-app-success-border'}">${q.questionType === 'poll' ? 'poll' : 'MC'}</span>
+                    <span class="flex-1 math-render">${esc(q.prompt)}</span>
+                    <button onclick="moveInSet(${i}, -1)" class="px-2 py-1 bg-app-card rounded hover:bg-app-sec">&uarr;</button>
+                    <button onclick="moveInSet(${i}, 1)" class="px-2 py-1 bg-app-card rounded hover:bg-app-sec">&darr;</button>
+                    <button onclick="removeFromSet(${i})" class="px-2 py-1 bg-app-danger rounded hover:bg-app-danger-hover">Remove</button>
+                </div>`).join('');
+            renderMath();
+        }
+
+        async function saveOrder(ids) {
+            setQuestions = await api(`/api/question-sets/${currentSetId()}/questions`, 'PUT', { questionIds: ids });
+            renderSetQuestions();
+            search();
+        }
+
+        function moveInSet(i, delta) {
+            const j = i + delta;
+            if (j < 0 || j >= setQuestions.length) return;
+            const ids = setQuestions.map(q => q._id);
+            [ids[i], ids[j]] = [ids[j], ids[i]];
+            saveOrder(ids);
+        }
+
+        function removeFromSet(i) {
+            saveOrder(setQuestions.map(q => q._id).filter((_, k) => k !== i));
+        }
+
+        async function addToSet(questionId) {
+            if (!currentSetId()) return alert('Select or save a set first.');
+            const ids = setQuestions.map(q => q._id);
+            if (ids.includes(questionId)) return;
+            await saveOrder([...ids, questionId]);
+        }
+
+        // ---------- Bulk add ----------
+        function addBulkRow() {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="pr-2 pb-2"><select class="${input} b-type" onchange="toggleRowType(this)"><option value="multiple-choice">MC</option><option value="poll">Poll</option></select></td>
+                <td class="pr-2 pb-2 min-w-64"><input class="${input} b-prompt"></td>
+                ${[0, 1, 2, 3].map(() => `<td class="pr-2 pb-2"><input class="${input} b-opt"></td>`).join('')}
+                <td class="pr-2 pb-2"><select class="${input} b-correct">${LETTERS.map((l, i) => `<option value="${i}">${l}</option>`).join('')}</select></td>
+                <td class="pr-2 pb-2"><input class="${input} b-tags" placeholder="a, b"></td>
+                <td class="pb-2"><button onclick="this.closest('tr').remove()" class="px-2 py-1 bg-app-card rounded hover:bg-app-sec">&times;</button></td>`;
+            document.getElementById('bulkBody').appendChild(tr);
+        }
+
+        function toggleRowType(sel) {
+            sel.closest('tr').querySelector('.b-correct').disabled = sel.value === 'poll';
+        }
+
+        async function submitBulk() {
+            const msg = document.getElementById('bulkMsg');
+            const rows = [...document.querySelectorAll('#bulkBody tr')];
+            // Rows left completely blank are ignored.
+            const questions = rows.map(tr => ({
+                questionType: tr.querySelector('.b-type').value,
+                prompt: tr.querySelector('.b-prompt').value,
+                options: [...tr.querySelectorAll('.b-opt')].map(o => o.value),
+                correctAnswerIndex: tr.querySelector('.b-correct').value,
+                tags: tr.querySelector('.b-tags').value
+            })).filter(q => q.prompt.trim() || q.options.some(o => o.trim()));
+
+            if (!questions.length) { msg.className = 'text-xs text-app-error-border'; msg.textContent = 'Nothing to save.'; return; }
+            const bad = questions.findIndex(q => !q.prompt.trim() || q.options.some(o => !o.trim()));
+            if (bad >= 0) { msg.className = 'text-xs text-app-error-border'; msg.textContent = `Row ${bad + 1}: prompt and all 4 options are required.`; return; }
+
+            try {
+                const useSet = document.getElementById('addToSet').checked && currentSetId();
+                await api('/api/questions', 'POST', { questions, questionSetId: useSet || undefined });
+                msg.className = 'text-xs text-app-accent';
+                msg.textContent = `Saved ${questions.length} question(s).`;
+                document.getElementById('bulkBody').innerHTML = '';
+                addBulkRow();
+                await loadSetQuestions();
+                search();
+            } catch (e) { msg.className = 'text-xs text-app-error-border'; msg.textContent = e.message; }
+        }
+
+        // ---------- Search / edit ----------
+        function debouncedSearch() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(search, 250);
+        }
+
+        async function search() {
+            const params = new URLSearchParams({
+                q: document.getElementById('searchQ').value,
+                type: document.getElementById('searchType').value
+            });
+            results = await api(`/api/questions?${params}`);
+            renderResults();
+        }
+
+        function renderResults() {
+            const box = document.getElementById('results');
+            if (!results.length) { box.innerHTML = '<p class="text-xs text-app-muted">No questions found.</p>'; return; }
+            const inSet = new Set(setQuestions.map(q => q._id));
+            box.innerHTML = results.map(q => q._id === editingId ? editRow(q) : `
+                <div class="bg-app-body border border-app-border rounded p-3 text-xs flex flex-col gap-1">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] px-1.5 py-0.5 rounded ${q.questionType === 'poll' ? 'bg-app-warning/20 text-app-warning' : 'bg-app-success-sub text-app-success-border'}">${q.questionType === 'poll' ? 'poll' : 'MC'}</span>
+                        <span class="flex-1 math-render">${esc(q.prompt)}</span>
+                        <button onclick="addToSet('${q._id}')" ${inSet.has(q._id) ? 'disabled' : ''} class="px-2 py-1 bg-app-card rounded hover:bg-app-sec disabled:opacity-40">${inSet.has(q._id) ? 'In set' : 'Add to set'}</button>
+                        <button onclick="startEdit('${q._id}')" class="px-2 py-1 bg-app-card rounded hover:bg-app-sec">Edit</button>
+                        <button onclick="deleteQuestion('${q._id}')" class="px-2 py-1 bg-app-danger rounded hover:bg-app-danger-hover">Delete</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-x-4 text-app-muted">
+                        ${(q.options || []).map((o, i) => `<span class="${q.questionType !== 'poll' && i === q.correctAnswerIndex ? 'text-app-accent' : ''}">${LETTERS[i]}. <span class="math-render">${esc(o)}</span></span>`).join('')}
+                    </div>
+                    <div class="text-app-muted">${(q.tags || []).map(t => `#${esc(t)}`).join(' ')} ${q.sets.length ? '&middot; Sets: ' + q.sets.map(s => esc(s.title)).join(', ') : ''}</div>
+                </div>`).join('');
+            renderMath();
+        }
+
+        function editRow(q) {
+            return `
+                <div class="bg-app-body border border-app-success-border rounded p-3 text-xs flex flex-col gap-2">
+                    <div class="flex gap-2">
+                        <select id="e-type" onchange="document.getElementById('e-correct').disabled = this.value === 'poll'" class="${input} !w-32">
+                            <option value="multiple-choice" ${q.questionType !== 'poll' ? 'selected' : ''}>Multiple choice</option>
+                            <option value="poll" ${q.questionType === 'poll' ? 'selected' : ''}>Poll</option>
+                        </select>
+                        <input id="e-prompt" class="${input}" value="${esc(q.prompt)}">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        ${[0, 1, 2, 3].map(i => `<input class="${input} e-opt" placeholder="Option ${LETTERS[i]}" value="${esc((q.options || [])[i])}">`).join('')}
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <label class="text-app-muted">Correct</label>
+                        <select id="e-correct" ${q.questionType === 'poll' ? 'disabled' : ''} class="${input} !w-20">
+                            ${LETTERS.map((l, i) => `<option value="${i}" ${q.correctAnswerIndex === i ? 'selected' : ''}>${l}</option>`).join('')}
+                        </select>
+                        <input id="e-tags" class="${input}" placeholder="Tags" value="${esc((q.tags || []).join(', '))}">
+                        <button onclick="saveEdit('${q._id}')" class="px-3 py-1.5 bg-app-primary rounded font-semibold hover:bg-app-primary-hover">Save</button>
+                        <button onclick="cancelEdit()" class="px-3 py-1.5 bg-app-card rounded hover:bg-app-sec">Cancel</button>
+                    </div>
+                </div>`;
+        }
+
+        function startEdit(id) { editingId = id; renderResults(); }
+        function cancelEdit() { editingId = null; renderResults(); }
+
+        async function saveEdit(id) {
+            const options = [...document.querySelectorAll('.e-opt')].map(o => o.value);
+            const body = {
+                questionType: document.getElementById('e-type').value,
+                prompt: document.getElementById('e-prompt').value,
+                options,
+                correctAnswerIndex: document.getElementById('e-correct').value,
+                tags: document.getElementById('e-tags').value
+            };
+            if (!body.prompt.trim() || options.some(o => !o.trim())) return alert('Prompt and all 4 options are required.');
+            try {
+                await api(`/api/questions/${id}`, 'PUT', body);
+                editingId = null;
+                await loadSetQuestions();
+                await search();
+            } catch (e) { alert(e.message); }
+        }
+
+        async function deleteQuestion(id) {
+            if (!confirm('Delete this question from the bank and every set that uses it?')) return;
+            await api(`/api/questions/${id}`, 'DELETE');
+            await loadSetQuestions();
+            await search();
+        }
+
+        (async () => {
+            addBulkRow();
+            await loadSets();
+            await search();
+        })();
+    </script> -->
+<script>const SET_ID = '<%= setId %>';</script>
+<script src="/scripts/rich-text.js"></script>
+<script src="/scripts/question-set.js"></script>
+</body>
+</html>

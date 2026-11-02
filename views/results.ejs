@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/header', { title: 'Results' }) %>
+</head>
+<body class="bg-app-body text-app-main min-h-screen p-8">
+    <div class="max-w-6xl mx-auto flex flex-col gap-6">
+        <header class="flex justify-between items-center border-b border-app-border pb-4">
+            <h1 class="text-2xl font-bold text-app-accent">Question Set Results</h1>
+            <div class="flex gap-2">
+                <a href="/gradebook" class="text-sm bg-app-card px-4 py-2 rounded hover:bg-app-sec">Gradebook</a>
+                <a href="/dashboard" class="text-sm bg-app-card px-4 py-2 rounded hover:bg-app-sec">Dashboard</a>
+            </div>
+        </header>
+
+        <section class="bg-app-card p-6 rounded-xl border border-app-border flex flex-col gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label class="text-xs text-app-muted flex flex-col gap-1">Class
+                    <select id="classSelect" onchange="load()" class="bg-app-body border border-app-border p-2 rounded text-sm text-app-main"></select>
+                </label>
+                <label class="text-xs text-app-muted flex flex-col gap-1">Question set
+                    <select id="setSelect" onchange="load()" class="bg-app-body border border-app-border p-2 rounded text-sm text-app-main"></select>
+                </label>
+            </div>
+            <div class="flex gap-4 text-xs text-app-muted">
+                <span><span class="inline-block w-3 h-3 rounded bg-app-primary align-middle"></span> Correct</span>
+                <span><span class="inline-block w-3 h-3 rounded bg-app-error align-middle"></span> Incorrect</span>
+                <span><span class="inline-block w-3 h-3 rounded bg-app-poll align-middle"></span> Poll answer</span>
+                <span><span class="inline-block w-3 h-3 rounded bg-app-card align-middle"></span> Unanswered</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table id="table" class="w-full text-sm"></table>
+            </div>
+            <p id="msg" class="text-xs text-app-muted"></p>
+        </section>
+    </div>
+    <script src="/scripts/sortable.js"></script>
+    <script src="/scripts/results.js"></script>
+</body>
+</html>
